@@ -1,0 +1,25 @@
+# === Rust ===
+/target/
+/Cargo.lock
+
+# === Node/Web ===
+node_modules/
+/web/dist/
+/web/.vite/
+
+# === OS / IDE ===
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# === Logs ===
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# === Env Files ===
+.env
+.env.*
+!.env.example
