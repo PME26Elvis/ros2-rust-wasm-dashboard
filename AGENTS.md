@@ -6,12 +6,15 @@
 
 ## Build steps (cloud-safe)
 1) Run `scripts/setup.sh` to install toolchains (Rust/Node/wasm-pack); this is cacheable.
-2) Web: `pnpm -C web build` (will be created by tasks)
-3) Rust: `cargo test --workspace --all-features` (mock pipeline)
-4) E2E (headless): `pnpm -C web test`
+2) Copy `.env.example` to `.env`.
+3) Web: `pnpm -C web build` (will be created by tasks)
+4) Rust: `cargo test --workspace --all-features` (mock pipeline)
+5) E2E (headless): `pnpm -C web test`
+6) Or simply run `make ci`.
 
 ## Optional: try installing ROS 2 Jazzy
-If sandbox is Ubuntu with apt available, try installing ROS 2 Jazzy base per official docs, then run a minimal rclrs publisher/subscriber demo.
+If sandbox is Ubuntu with apt available, try installing ROS 2 Jazzy base per official docs, then run a minimal rclrs publisher/s
+ubscriber demo.
 If it fails, **fallback to mock pipeline** and attach full logs in the PR.
 
 ## Acceptance

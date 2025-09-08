@@ -1,0 +1,20 @@
+[package]
+name = "bridge"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = ["native"]
+native = ["tokio", "tungstenite"]
+wasm = ["wasm-bindgen", "web-sys"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+
+# native deps
+tokio = { version = "1", features = ["rt-multi-thread", "macros"], optional = true }
+tungstenite = { version = "0.21", optional = true }
+
+# wasm deps
+wasm-bindgen = { version = "0.2", optional = true }
+web-sys = { version = "0.3", optional = true, features = ["WebSocket"] }

@@ -1,0 +1,8 @@
+[package]
+name = "fake_robot_state"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rand = "0.8"
+shared = { path = "../shared" }

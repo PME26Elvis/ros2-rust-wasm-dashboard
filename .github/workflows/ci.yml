@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [work]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20]
+        rust: [stable]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'pnpm'
+      - uses: dtolnay/rust-toolchain@stable
+      - run: bash scripts/setup.sh
+      - run: pnpm -C web install --frozen-lockfile
+      - run: pnpm -C web build
+      - run: cargo test --workspace --all-features
+      - run: pnpm -C web test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: web/dist

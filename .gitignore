@@ -23,3 +23,6 @@ pnpm-debug.log*
 .env
 .env.*
 !.env.example
+
+# ts-rs bindings
+crates/**/bindings/
