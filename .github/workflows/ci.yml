@@ -1,31 +1,38 @@
 name: CI
 
 on:
-  push:
-    branches: [work]
   pull_request:
-    branches: [main]
+  push:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         node: [20]
         rust: [stable]
     steps:
       - uses: actions/checkout@v4
+
+      # 先安裝 pnpm（很關鍵，因為下面 setup-node 有 cache: 'pnpm' 會用到 pnpm）
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           cache: 'pnpm'
-      - uses: dtolnay/rust-toolchain@stable
-      - run: bash scripts/setup.sh
+          cache-dependency-path: web/pnpm-lock.yaml
+
       - run: pnpm -C web install --frozen-lockfile
       - run: pnpm -C web build
-      - run: cargo test --workspace --all-features
       - run: pnpm -C web test
-      - uses: actions/upload-artifact@v4
+
+      - uses: actions-rs/toolchain@v1
         with:
-          name: web-dist
-          path: web/dist
+          toolchain: ${{ matrix.rust }}
+
+      # ros2_demo 已從 workspace 拔出，不會被這條測到
+      - run: cargo test --workspace --all-features
