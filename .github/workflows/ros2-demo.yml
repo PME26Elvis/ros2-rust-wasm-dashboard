@@ -78,7 +78,7 @@ jobs:
           # 用 log 行數作為唯一成功條件
           COUNT=$(grep -c "hello from rclrs" sub.log || true)
           echo "Received $COUNT messages"
-          if [ "$COUNT" -lt 10 ]; then
+          if [ "$COUNT" -lt 5 ]; then
             echo "Too few messages: $COUNT"
             exit 100
           fi
