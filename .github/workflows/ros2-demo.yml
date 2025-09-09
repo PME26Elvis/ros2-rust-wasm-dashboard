@@ -1,0 +1,125 @@
+name: ros2-demo
+on:
+  workflow_dispatch:
+    inputs:
+      ros_distro:
+        description: "ROS 2 distro"
+        type: choice
+        required: true
+        default: jazzy
+        options:
+          - jazzy
+          - humble
+
+jobs:
+  demo-jazzy:
+    if: ${{ inputs.ros_distro == 'jazzy' }}
+    runs-on: ubuntu-24.04
+    env:
+      RMW_IMPLEMENTATION: rmw_cyclonedds_cpp
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup ROS 2 Jazzy (apt)
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt update
+          sudo apt install -y software-properties-common curl gnupg lsb-release
+          sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo tee /usr/share/keyrings/ros-archive-keyring.gpg > /dev/null
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+          sudo apt update
+          sudo apt install -y ros-jazzy-ros-base
+          source /opt/ros/jazzy/setup.bash
+          ros2 --version || true
+
+      - uses: actions/setup-rust@v1
+        with:
+          rust-version: stable
+
+      - name: Build + run pub/sub (Jazzy)
+        shell: bash
+        working-directory: crates/ros2_demo
+        run: |
+          set -euo pipefail
+          source /opt/ros/jazzy/setup.bash
+
+          cargo build --release
+
+          timeout 25s cargo run --release --bin minimal_pub > pub.log 2>&1 & PUBPID=$!
+          sleep 2
+          timeout 30s cargo run --release --bin minimal_sub | tee sub.log
+
+          set -o pipefail
+          COUNT=$(grep -c "hello from rclrs" sub.log || true)
+          if [ "$COUNT" -lt 10 ]; then
+            echo "Expected at least 10 messages, got $COUNT"
+            kill -9 "$PUBPID" || true
+            exit 1
+          fi
+          kill -0 "$PUBPID" 2>/dev/null && kill -9 "$PUBPID" || true
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ros2-demo-logs
+          path: |
+            crates/ros2_demo/sub.log
+            crates/ros2_demo/pub.log
+
+  demo-humble:
+    if: ${{ inputs.ros_distro == 'humble' }}
+    runs-on: ubuntu-22.04
+    env:
+      RMW_IMPLEMENTATION: rmw_cyclonedds_cpp
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup ROS 2 Humble (apt)
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt update
+          sudo apt install -y software-properties-common curl gnupg lsb-release
+          sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo tee /usr/share/keyrings/ros-archive-keyring.gpg > /dev/null
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+          sudo apt update
+          sudo apt install -y ros-humble-ros-base
+          source /opt/ros/humble/setup.bash
+          ros2 --version || true
+
+      - uses: actions/setup-rust@v1
+        with:
+          rust-version: stable
+
+      - name: Build + run pub/sub (Humble)
+        shell: bash
+        working-directory: crates/ros2_demo
+        run: |
+          set -euo pipefail
+          source /opt/ros/humble/setup.bash
+
+          cargo build --release
+
+          timeout 25s cargo run --release --bin minimal_pub > pub.log 2>&1 & PUBPID=$!
+          sleep 2
+          timeout 30s cargo run --release --bin minimal_sub | tee sub.log
+
+          set -o pipefail
+          COUNT=$(grep -c "hello from rclrs" sub.log || true)
+          if [ "$COUNT" -lt 10 ]; then
+            echo "Expected at least 10 messages, got $COUNT"
+            kill -9 "$PUBPID" || true
+            exit 1
+          fi
+          kill -0 "$PUBPID" 2>/dev/null && kill -9 "$PUBPID" || true
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ros2-demo-logs
+          path: |
+            crates/ros2_demo/sub.log
+            crates/ros2_demo/pub.log
