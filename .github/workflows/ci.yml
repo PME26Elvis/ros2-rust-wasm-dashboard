@@ -1,38 +1,56 @@
-name: CI
+name: CI (rust+web, no ROS)
 
 on:
-  pull_request:
   push:
+    branches: [ main ]
+  pull_request:
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        node: [20]
-        rust: [stable]
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      # 先安裝 pnpm（很關鍵，因為下面 setup-node 有 cache: 'pnpm' 會用到 pnpm）
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-          run_install: false
+      # ---------- Rust (bridge) ----------
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
 
-      - uses: actions/setup-node@v4
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
         with:
-          node-version: ${{ matrix.node }}
+          workspaces: |
+            crates/ros2_ws_bridge
+
+      - name: Format check
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        run: cargo clippy -p ros2_ws_bridge -- -D warnings
+
+      - name: Build bridge (release)
+        run: cargo build -p ros2_ws_bridge --release
+
+      # ---------- Web ----------
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
           cache: 'pnpm'
-          cache-dependency-path: web/pnpm-lock.yaml
 
-      - run: pnpm -C web install --frozen-lockfile
-      - run: pnpm -C web build
-      - run: pnpm -C web test
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@9 --activate
 
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ matrix.rust }}
+      - name: Install web deps
+        run: pnpm -C web install --frozen-lockfile=false
 
-      # ros2_demo 已從 workspace 拔出，不會被這條測到
-      - run: cargo test --workspace --all-features
+      - name: Build web
+        run: pnpm -C web build
+
+      - name: Test web
+        run: pnpm -C web test
