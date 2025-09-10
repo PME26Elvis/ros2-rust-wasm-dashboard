@@ -1,11 +1,77 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>ROS2 WASM Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ROS 2 Dashboard</title>
+    <style>
+      :root {
+        --bg:#0f1115; --panel:#151922; --muted:#9aa4b2; --text:#e6e9ef;
+        --accent:#2ec4b6; --accent-2:#3a86ff; --danger:#ff6b6b; --ok:#22c55e;
+        --card:#1b2130; --border:#222836;
+      }
+      html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+        font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial;}
+      .container{max-width:1120px;margin:0 auto;padding:20px 16px 40px;}
+      header{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+      h1{font-size:18px;margin:0;font-weight:600;letter-spacing:.2px;}
+      ros-status{margin-left:auto;}
+      .grid{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;}
+      .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;}
+      .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px;}
+      .row{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+      input[type="text"]{background:var(--panel);border:1px solid var(--border);color:var(--text);
+        padding:8px 10px;border-radius:10px;flex:1;outline:none;}
+      .qos{color:var(--muted);font-size:12px}
+      footer{margin-top:16px;display:flex;gap:8px;align-items:center;}
+      button{background:var(--panel);border:1px solid var(--border);color:var(--text);
+        padding:8px 12px;border-radius:10px;cursor:pointer;}
+      button:hover{border-color:var(--accent);} .muted{color:var(--muted);}
+      .toast{position:fixed;right:16px;bottom:16px;background:#1e2636;border:1px solid var(--border);
+        padding:10px 12px;border-radius:10px;max-width:360px;display:none}
+      .toast.show{display:block}
+    </style>
   </head>
   <body>
-    <div id="app">ROS2 Dashboard</div>
+    <div class="container">
+      <header>
+        <h1>ROS 2 Dashboard</h1>
+        <ros-status></ros-status>
+      </header>
+
+      <div class="grid">
+        <div>
+          <div class="card">
+            <div class="row">
+              <input id="filter" type="text" placeholder="Filter logs (substring)"/>
+            </div>
+            <live-log></live-log>
+          </div>
+          <robot-map></robot-map>
+        </div>
+        <div>
+          <div class="kpis">
+            <metric-card id="kpi-recv" label="Received" value="0"></metric-card>
+            <metric-card id="kpi-tps"  label="Msgs/s"  value="0"></metric-card>
+            <metric-card id="kpi-bps"  label="Bitrate (KB/s)" value="0"></metric-card>
+            <metric-card id="kpi-p95"  label="P95 Latency (ms)" value="--"></metric-card>
+          </div>
+          <div class="card"><mini-chart></mini-chart></div>
+          <div class="qos" id="qos-box">QoS: …</div>
+          <topology-mini></topology-mini>
+        </div>
+      </div>
+
+      <footer>
+        <button id="btn-reconnect">Reconnect</button>
+        <button id="btn-clear">Clear logs</button>
+        <button id="btn-download">Download CSV</button>
+        <span class="muted" id="status-text"></span>
+      </footer>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

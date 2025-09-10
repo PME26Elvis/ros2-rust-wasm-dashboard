@@ -4,4 +4,5 @@ members = [
     "crates/bridge",
     "crates/fake_robot_state"
 ]
-exclude = ["crates/ros2_demo"]
+exclude = ["crates/ros2_demo", "crates/ros2_ws_bridge"]
+resolver = "2"

@@ -1,0 +1,2 @@
+cargo:rustc-link-search=native=/opt/ros/humble/lib
+cargo:rerun-if-changed=build.rs

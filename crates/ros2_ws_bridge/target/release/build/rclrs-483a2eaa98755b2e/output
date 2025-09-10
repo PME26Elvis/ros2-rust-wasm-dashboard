@@ -1,0 +1,8 @@
+cargo:rustc-check-cfg=cfg(ros_distro, values("humble", "jazzy", "kilted", "rolling"))
+cargo:rustc-cfg=ros_distro="humble"
+cargo:rustc-link-search=native=/opt/ros/humble/lib
+cargo:rustc-link-lib=dylib=rcl
+cargo:rustc-link-lib=dylib=rcl_yaml_param_parser
+cargo:rustc-link-lib=dylib=rcutils
+cargo:rustc-link-lib=dylib=rmw
+cargo:rustc-link-lib=dylib=rmw_implementation

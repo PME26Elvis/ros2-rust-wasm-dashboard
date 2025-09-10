@@ -1,24 +1,30 @@
 use rclrs::{Context, CreateBasicExecutor};
-use rclrs::vendor::example_interfaces;
-use std::{thread, time::Duration};
 
-fn main() -> Result<(), rclrs::RclrsError> {
-    // rclrs 0.5：從環境建立 Context，建立 basic executor，再由 executor 建立節點
-    let context = Context::default_from_env()?;
+fn now_ms() -> u128 {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_millis()
+}
+
+fn main() {
+    let context = Context::default_from_env().expect("ctx");
     let executor = context.create_basic_executor();
-    let node = executor.create_node("minimal_pub")?;
-
-    // 使用 vendored 的 example_interfaces::msg::String
-    let publisher = node.create_publisher::<example_interfaces::msg::String>("chatter")?;
+    let node = executor.create_node("demo_pub").expect("node");
+    let publisher = node
+        .create_publisher::<rclrs::vendor::example_interfaces::msg::String>("chatter")
+        .expect("pub");
 
     for i in 0..30 {
-        let msg = example_interfaces::msg::String {
-            data: format!("hello from rclrs {i}"),
-        };
-        publisher.publish(&msg)?;
-        println!("published {i}");
-        thread::sleep(Duration::from_millis(100));
+        let stamp = now_ms();
+        let payload = format!("{}|{}", i, stamp);
+        let mut msg = rclrs::vendor::example_interfaces::msg::String::default();
+        msg.data = format!("hello from rclrs {}", i); // 終端可讀
+        // 真正傳輸的仍是 data；為了不破壞 bridge，我們把原字串尾端附上 " |<seq>|<ms>"
+        msg.data = format!("{} |{}|{}", msg.data, i, stamp);
+        publisher.publish(msg).ok();
+        println!("published {}", i);
+        std::thread::sleep(std::time::Duration::from_millis(1000));
     }
-
-    Ok(())
 }
