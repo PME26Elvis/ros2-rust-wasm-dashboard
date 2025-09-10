@@ -3,7 +3,9 @@ use shared::CpuTemp;
 
 pub fn gen_cpu_temp() -> CpuTemp {
     let mut rng = rand::thread_rng();
-    CpuTemp { temp: rng.gen_range(30.0..80.0) }
+    CpuTemp {
+        temp: rng.gen_range(30.0..80.0),
+    }
 }
 
 #[cfg(test)]
