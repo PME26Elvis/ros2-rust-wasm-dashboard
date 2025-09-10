@@ -70,8 +70,8 @@ Query examples: `msgs_total`, `bytes_total`, `throughput_msgs_per_sec`.
 ---
 
 ## Screenshots
-![Dashboard](docs/dashboard.png)
-![Prometheus](docs/prometheus.png)
+![Dashboard](docs/Dashboard.png)
+![Prometheus](docs/Prometheus.png)
 
 ---
 
