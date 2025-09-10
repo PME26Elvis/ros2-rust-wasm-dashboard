@@ -77,3 +77,4 @@ Query examples: `msgs_total`, `bytes_total`, `throughput_msgs_per_sec`.
 
 ## License
 MIT
+
